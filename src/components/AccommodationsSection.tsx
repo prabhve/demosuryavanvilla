@@ -11,7 +11,7 @@ import {
   ChevronRight,
   ShieldCheck
 } from "lucide-react";
-import { ACCOMMODATIONS, VILLA_CONTACT } from "../data/villaData";
+import { useEstateData } from "../context/EstateDataContext";
 import { Accommodation } from "../types";
 
 interface AccommodationsSectionProps {
@@ -19,24 +19,22 @@ interface AccommodationsSectionProps {
 }
 
 export default function AccommodationsSection({ onOpenBooking }: AccommodationsSectionProps) {
+  const { accommodations, villaSettings } = useEstateData();
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [selectedSuiteId, setSelectedSuiteId] = useState<string>("estate-buyout");
 
   const categories = [
     { id: "all", label: "All Accommodations" },
-    { id: "estate-buyout", label: "5-BHK Full Estate Buyout" },
-    { id: "sahyadri-royal-suite", label: "Royal Mountain Suite" },
-    { id: "poolside-cabana-suite", label: "Poolside Cabana Suite" },
-    { id: "garden-horizon-room", label: "Garden Horizon Deluxe" },
+    ...accommodations.map((a) => ({ id: a.id, label: a.name.split("(")[0] })),
   ];
 
   const filteredSuites = activeCategory === "all" 
-    ? ACCOMMODATIONS 
-    : ACCOMMODATIONS.filter((item) => item.id === activeCategory);
+    ? accommodations 
+    : accommodations.filter((item) => item.id === activeCategory);
 
   const handleWhatsAppSuite = (suite: Accommodation) => {
-    const text = `Hello Suryavan Villa! I am interested in booking the *${suite.name}* at Kadav, Karjat. Please share availability and best package offers.`;
-    window.open(`https://wa.me/${VILLA_CONTACT.whatsappNumber}?text=${encodeURIComponent(text)}`, "_blank");
+    const text = `Hello ${villaSettings.name}! I am interested in booking the *${suite.name}* at Kadav, Karjat. Please share availability and best package offers.`;
+    window.open(`https://wa.me/${villaSettings.whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   return (

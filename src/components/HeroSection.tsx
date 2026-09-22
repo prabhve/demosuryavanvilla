@@ -13,38 +13,15 @@ import {
   Compass
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { ACCOMMODATIONS } from "../data/villaData";
+import { useEstateData } from "../context/EstateDataContext";
 
 interface HeroSectionProps {
   onOpenBooking: (preselectedRoom?: string, customDates?: { checkIn: string; checkOut: string; guests: number }) => void;
   onOpenConcierge: (initialPrompt?: string) => void;
 }
 
-const HERO_SLIDES = [
-  {
-    image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1920&q=85",
-    tagline: "Exclusive Private Estate & Swimming Pool",
-    title: "Where Luxury Meets Sahyadri Nature",
-    subtitle: "A serene 5-BHK private luxury villa nestled amidst the lush hills and fresh breeze of Kadav, Karjat.",
-    panDirection: { scale: [1.02, 1.14], x: [0, -18], y: [0, -10] }
-  },
-  {
-    image: "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=1920&q=85",
-    tagline: "Private 40-Ft Crystal Clear Pool",
-    title: "Unwind in Total Seclusion",
-    subtitle: "Dip into refreshing waters, relax on sun loungers, and sip handcrafted sundowners by the palm deck.",
-    panDirection: { scale: [1.03, 1.15], x: [0, 15], y: [0, -12] }
-  },
-  {
-    image: "https://images.unsplash.com/photo-1584467735815-f778f274e296?auto=format&fit=crop&w=1920&q=85",
-    tagline: "15,000 Sq. Ft. Celebration Lawns & Bonfire",
-    title: "Unforgettable Moments & Gatherings",
-    subtitle: "The ultimate destination for family reunions, milestone birthdays, corporate offsites, and cozy star-gazing nights.",
-    panDirection: { scale: [1.02, 1.14], x: [0, -12], y: [0, 10] }
-  },
-];
-
 export default function HeroSection({ onOpenBooking, onOpenConcierge }: HeroSectionProps) {
+  const { heroSettings, accommodations, villaSettings } = useEstateData();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Quick booking state
@@ -52,6 +29,16 @@ export default function HeroSection({ onOpenBooking, onOpenConcierge }: HeroSect
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(6);
   const [selectedSuite, setSelectedSuite] = useState("estate-buyout");
+
+  const slides = heroSettings.slides && heroSettings.slides.length > 0 ? heroSettings.slides : [
+    {
+      id: "slide-1",
+      image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1920&q=85",
+      tag: "Exclusive Private Estate & Swimming Pool",
+      title: "Where Luxury Meets Sahyadri Nature",
+      subtitle: "A serene 5-BHK private luxury villa nestled amidst the lush hills and fresh breeze of Kadav, Karjat.",
+    },
+  ];
 
   // Set default dates (tomorrow and day after)
   useEffect(() => {
@@ -68,10 +55,13 @@ export default function HeroSection({ onOpenBooking, onOpenConcierge }: HeroSect
   // Slide autoplay
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 7500);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
+
+  const activeIndex = currentSlide % slides.length;
+  const activeSlide = slides[activeIndex] || slides[0];
 
   const handleQuickCheck = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +74,7 @@ export default function HeroSection({ onOpenBooking, onOpenConcierge }: HeroSect
       <div className="absolute inset-0 overflow-hidden">
         <AnimatePresence mode="popLayout">
           <motion.div
-            key={currentSlide}
+            key={activeSlide.id || activeIndex}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -92,13 +82,13 @@ export default function HeroSection({ onOpenBooking, onOpenConcierge }: HeroSect
             className="absolute inset-0"
           >
             <motion.img
-              src={HERO_SLIDES[currentSlide].image}
-              alt={HERO_SLIDES[currentSlide].title}
+              src={activeSlide.image}
+              alt={activeSlide.title}
               initial={{ scale: 1.02, x: 0, y: 0 }}
               animate={{
-                scale: HERO_SLIDES[currentSlide].panDirection.scale,
-                x: HERO_SLIDES[currentSlide].panDirection.x,
-                y: HERO_SLIDES[currentSlide].panDirection.y,
+                scale: [1.02, 1.12],
+                x: activeIndex % 2 === 0 ? [0, -15] : [0, 15],
+                y: [0, -8],
               }}
               transition={{
                 duration: 7.8,
@@ -115,14 +105,14 @@ export default function HeroSection({ onOpenBooking, onOpenConcierge }: HeroSect
 
       {/* Slider Nav Arrows */}
       <button
-        onClick={() => setCurrentSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1))}
+        onClick={() => setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1))}
         className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/40 hover:bg-black/80 text-white/80 hover:text-amber-400 border border-white/10 flex items-center justify-center transition backdrop-blur-sm hidden md:flex cursor-pointer hover:border-amber-400/40"
         aria-label="Previous slide"
       >
         <ChevronLeft className="w-6 h-6" />
       </button>
       <button
-        onClick={() => setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)}
+        onClick={() => setCurrentSlide((prev) => (prev + 1) % slides.length)}
         className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/40 hover:bg-black/80 text-white/80 hover:text-amber-400 border border-white/10 flex items-center justify-center transition backdrop-blur-sm hidden md:flex cursor-pointer hover:border-amber-400/40"
         aria-label="Next slide"
       >
@@ -140,7 +130,7 @@ export default function HeroSection({ onOpenBooking, onOpenConcierge }: HeroSect
         >
           <span className="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs sm:text-sm font-semibold tracking-wide backdrop-blur-md">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Kadav, Karjat • Maharashtra</span>
+            <span>{villaSettings.city || "Kadav, Karjat"} • Maharashtra</span>
           </span>
           <span className="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-stone-900/80 border border-stone-700 text-stone-200 text-xs sm:text-sm font-medium backdrop-blur-md">
             <div className="flex text-amber-400">
@@ -155,7 +145,7 @@ export default function HeroSection({ onOpenBooking, onOpenConcierge }: HeroSect
         {/* Dynamic Heading & Tagline with Smooth Text Transitions */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={`hero-text-${currentSlide}`}
+            key={`hero-text-${activeIndex}`}
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -18 }}
@@ -163,13 +153,13 @@ export default function HeroSection({ onOpenBooking, onOpenConcierge }: HeroSect
             className="space-y-4 max-w-4xl mx-auto"
           >
             <p className="text-[#d4af37] text-xs sm:text-sm uppercase tracking-[0.3em] font-semibold">
-              {HERO_SLIDES[currentSlide].tagline}
+              {activeSlide.tag}
             </p>
             <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.15] drop-shadow-lg">
-              {HERO_SLIDES[currentSlide].title}
+              {activeSlide.title}
             </h1>
             <p className="text-stone-300 text-base sm:text-lg lg:text-xl max-w-2xl mx-auto font-light leading-relaxed">
-              {HERO_SLIDES[currentSlide].subtitle}
+              {activeSlide.subtitle}
             </p>
           </motion.div>
         </AnimatePresence>
@@ -268,7 +258,7 @@ export default function HeroSection({ onOpenBooking, onOpenConcierge }: HeroSect
                 onChange={(e) => setSelectedSuite(e.target.value)}
                 className="w-full bg-[#12100e] border border-stone-700 rounded-xl px-3 py-2 text-sm text-white font-medium focus:border-amber-400 focus:outline-none"
               >
-                {ACCOMMODATIONS.map((acc) => (
+                {accommodations.map((acc) => (
                   <option key={acc.id} value={acc.id}>
                     {acc.name.split("(")[0]}
                   </option>
@@ -318,12 +308,12 @@ export default function HeroSection({ onOpenBooking, onOpenConcierge }: HeroSect
 
         {/* Slide Indicators */}
         <div className="flex justify-center space-x-2 mt-8">
-          {HERO_SLIDES.map((_, idx) => (
+          {slides.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentSlide(idx)}
               className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                idx === currentSlide ? "w-8 bg-[#d4af37]" : "w-2 bg-stone-600 hover:bg-stone-400"
+                idx === activeIndex ? "w-8 bg-[#d4af37]" : "w-2 bg-stone-600 hover:bg-stone-400"
               }`}
               aria-label={`Go to slide ${idx + 1}`}
             />

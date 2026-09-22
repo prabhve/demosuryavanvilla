@@ -21,11 +21,15 @@ export interface BookingInquiryRecord extends BookingFormData {
   id: string;
   bookingRef: string;
   createdAt: string;
-  status: "pending" | "confirmed" | "checked-in" | "completed" | "cancelled";
+  status: "pending" | "quotation_sent" | "follow_up" | "confirmed" | "checked-in" | "completed" | "cancelled";
+  leadType: "inquiry" | "booking"; // Explicit distinction
   totalAmount?: number;
   advancePaid?: number;
+  balanceDue?: number;
+  paymentMethod?: "UPI" | "Bank Transfer" | "Cash on Arrival" | "Card";
   internalNotes?: string;
   source?: "Website Form" | "AI Concierge" | "WhatsApp Direct" | "Phone Call" | "Admin Manual";
+  followUpDate?: string;
 }
 
 export interface DiningMenuItem {
@@ -53,10 +57,43 @@ export interface MealPlanPricing {
   apPrice: number; // All Meals
 }
 
+export interface HeroSlideItem {
+  id: string;
+  image: string;
+  tag: string;
+  title: string;
+  subtitle: string;
+}
+
+export interface HeroSettings {
+  badgeText: string;
+  headline: string;
+  subheadline: string;
+  ctaPrimaryText: string;
+  ctaSecondaryText: string;
+  slides: HeroSlideItem[];
+}
+
+export interface AboutStatItem {
+  value: string;
+  label: string;
+  sub: string;
+}
+
+export interface AboutSettings {
+  badge: string;
+  heading: string;
+  subheading: string;
+  storyP1: string;
+  storyP2: string;
+  stats: AboutStatItem[];
+}
+
 export interface VillaSettings {
   name: string;
   legalName: string;
   tagline: string;
+  location: string;
   addressLine1: string;
   city: string;
   state: string;
@@ -80,6 +117,12 @@ export interface EstateDataContextType {
   villaSettings: VillaSettings;
   updateVillaSettings: (settings: Partial<VillaSettings>) => void;
   
+  heroSettings: HeroSettings;
+  updateHeroSettings: (settings: Partial<HeroSettings>) => void;
+
+  aboutSettings: AboutSettings;
+  updateAboutSettings: (settings: Partial<AboutSettings>) => void;
+
   accommodations: Accommodation[];
   updateAccommodation: (id: string, updated: Partial<Accommodation>) => void;
   addAccommodation: (acc: Accommodation) => void;
@@ -121,19 +164,75 @@ export interface EstateDataContextType {
   updateDiningItem: (id: string, updated: Partial<DiningMenuItem>) => void;
   deleteDiningItem: (id: string) => void;
 
+  // Inquiries & Bookings
   inquiries: BookingInquiryRecord[];
   addInquiry: (data: BookingFormData, source?: BookingInquiryRecord["source"]) => string;
   updateInquiryStatus: (id: string, status: BookingInquiryRecord["status"], notes?: string) => void;
   updateInquiryDetails: (id: string, updated: Partial<BookingInquiryRecord>) => void;
   deleteInquiry: (id: string) => void;
+  convertInquiryToBooking: (id: string, advancePaid: number, totalAmount: number, paymentMethod?: BookingInquiryRecord["paymentMethod"]) => void;
 
+  // AI Logs & Payload
   aiLogs: { id: string; query: string; reply: string; timestamp: string }[];
   addAiLog: (query: string, reply: string) => void;
+  getLiveContextForAI: () => any;
 
   resetToDefaults: () => void;
   exportBackupJson: () => string;
   importBackupJson: (jsonData: string) => boolean;
 }
+
+const DEFAULT_HERO_SETTINGS: HeroSettings = {
+  badgeText: "Exclusive 5-BHK Luxury Private Nature Estate in Kadav, Karjat",
+  headline: "Royal Seclusion & Sahyadri Serenity",
+  subheadline: "Private 40-ft swimming pool, 15,000 sq. ft. celebration lawns, in-house chef, and bonfire nights nestled in Kadav's lush valley.",
+  ctaPrimaryText: "Book Your Private Stay",
+  ctaSecondaryText: "Ask AI Concierge",
+  slides: [
+    {
+      id: "slide-1",
+      image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=2000&q=85",
+      tag: "Architectural Grandeur",
+      title: "Private 5-BHK Luxury Buyout",
+      subtitle: "Surrounded by misty Sahyadri mountains & quiet rural landscape",
+    },
+    {
+      id: "slide-2",
+      image: "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=2000&q=85",
+      tag: "Water Oasis",
+      title: "40-Ft Crystal Swimming Pool",
+      subtitle: "Submerged loungers, shallow kid's zone & poolside sundowner deck",
+    },
+    {
+      id: "slide-3",
+      image: "https://images.unsplash.com/photo-1584467735815-f778f274e296?auto=format&fit=crop&w=2000&q=85",
+      tag: "Celebration Grounds",
+      title: "15,000 Sq. Ft. Manicured Lawns",
+      subtitle: "Ideal for birthday milestones, family reunions, and team retreats",
+    },
+    {
+      id: "slide-4",
+      image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=2000&q=85",
+      tag: "Farm-to-Table Gourmet",
+      title: "In-House Private Chef Dining",
+      subtitle: "Authentic Konkani curries, barbecue grill & traditional Maharashtrian feasting",
+    },
+  ],
+};
+
+const DEFAULT_ABOUT_SETTINGS: AboutSettings = {
+  badge: "Welcome to Suryavan Villa",
+  heading: "A Haven of Exclusive Luxury in Kadav, Karjat",
+  subheading: "Designed as a private sanctuary away from city chaos, Suryavan Villa blends contemporary luxury with the unhurried rhythm of rural Maharashtra.",
+  storyP1: "Whether you are seeking a restful family weekend, celebrating a milestone anniversary, hosting a creative corporate retreat, or yearning for a slow poolside holiday with friends, Suryavan Villa offers 100% exclusive privacy.",
+  storyP2: "Wake up to the golden rays rising above the hills, plunge into your private pool, relish piping-hot Maharashtrian breakfast with farm-fresh herbs, and spend your evenings around a crackling bonfire with sizzling tandoori barbecue.",
+  stats: [
+    { value: "15,000+", label: "Sq. Ft. Private Estate", sub: "Gated green grounds" },
+    { value: "40 Ft.", label: "Private Swimming Pool", sub: "Crystal clean with loungers" },
+    { value: "5 BHK", label: "Luxury Suites", sub: "Spacious AC bedrooms" },
+    { value: "100 Pax", label: "Celebration Lawn", sub: "For intimate events & reunions" },
+  ],
+};
 
 const DEFAULT_MEAL_PRICING: MealPlanPricing = {
   epPrice: 0,
@@ -218,8 +317,11 @@ const DEFAULT_INITIAL_INQUIRIES: BookingInquiryRecord[] = [
     addons: ["Evening Bonfire Experience", "Poolside Barbecue"],
     specialRequests: "Celebrating 40th birthday. Require poolside barbecue setup and vegetarian Jain options for 4 elderly members.",
     status: "confirmed",
+    leadType: "booking",
     totalAmount: 65998,
     advancePaid: 30000,
+    balanceDue: 35998,
+    paymentMethod: "UPI",
     internalNotes: "Advance received via UPI. Chef Sachin briefed about Jain preferences. DG backup checked.",
     source: "Website Form",
     createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
@@ -237,17 +339,20 @@ const DEFAULT_INITIAL_INQUIRIES: BookingInquiryRecord[] = [
     mealPlan: "CP (With Breakfast)",
     addons: ["Scenic Terrace Breakfast Basket"],
     specialRequests: "Anniversary getaway. Need a bouquet on arrival.",
-    status: "pending",
+    status: "quotation_sent",
+    leadType: "inquiry",
     totalAmount: 15998,
     advancePaid: 0,
-    internalNotes: "Guest contacted over WhatsApp. Awaiting date confirmation.",
+    balanceDue: 15998,
+    internalNotes: "Quotation sent on WhatsApp. Follow up on Friday.",
+    followUpDate: "2026-10-02",
     source: "WhatsApp Direct",
     createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
   },
   {
     id: "inq-103",
     bookingRef: "SV-774192",
-    guestName: "Karan Johar Tech Solutions (Deepak Sharma)",
+    guestName: "Deepak Sharma (Fintech Solutions)",
     phone: "+91 97654 32109",
     email: "deepak@fintechinnovations.in",
     checkIn: "2026-11-05",
@@ -258,11 +363,36 @@ const DEFAULT_INITIAL_INQUIRIES: BookingInquiryRecord[] = [
     addons: ["Projector & Sound Setup", "Evening Bonfire Experience"],
     specialRequests: "Corporate Offsite. Need high-speed Wi-Fi in the main lawn for afternoon presentation.",
     status: "confirmed",
+    leadType: "booking",
     totalAmount: 78998,
     advancePaid: 40000,
+    balanceDue: 38998,
+    paymentMethod: "Bank Transfer",
     internalNotes: "50% advance cleared. Whiteboard & projector arranged in living salon.",
     source: "AI Concierge",
     createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+  },
+  {
+    id: "inq-104",
+    bookingRef: "SV-663120",
+    guestName: "Rohit & Megha Varma",
+    phone: "+91 98200 11223",
+    email: "rohit.varma@gmail.com",
+    checkIn: "2026-10-28",
+    checkOut: "2026-10-30",
+    guestsCount: 8,
+    roomType: "poolside-cabana-suite",
+    mealPlan: "AP (All Meals - Chef Special)",
+    addons: ["Evening Bonfire Experience"],
+    specialRequests: "Family with kids. Need baby crib in ground floor room.",
+    status: "pending",
+    leadType: "inquiry",
+    totalAmount: 28998,
+    advancePaid: 0,
+    balanceDue: 28998,
+    internalNotes: "New lead received from website form.",
+    source: "Website Form",
+    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
   },
 ];
 
@@ -270,6 +400,7 @@ const DEFAULT_VILLA_SETTINGS: VillaSettings = {
   name: VILLA_CONTACT.name,
   legalName: VILLA_CONTACT.legalName,
   tagline: "Exclusive 5-BHK Luxury Private Nature Estate in Kadav, Karjat",
+  location: "Tambas, Kadav, Karjat, Maharashtra 410201",
   addressLine1: VILLA_CONTACT.addressLine1,
   city: VILLA_CONTACT.city,
   state: VILLA_CONTACT.state,
@@ -286,21 +417,38 @@ const DEFAULT_VILLA_SETTINGS: VillaSettings = {
   checkOutTime: VILLA_CONTACT.checkOutTime,
   upiId: "suryavanvilla@okhdfcbank",
   bankDetails: "HDFC Bank | A/C: 50200088912345 | IFSC: HDFC0001234 | Branch: Karjat",
-  aiSystemPromptAddition: "Welcome guests warmly in Marathi or English. Highlight our farm-to-table Konkani food and 40ft private pool.",
+  aiSystemPromptAddition: "Welcome guests warmly in Marathi or English. Highlight our farm-to-table Konkani food, 40ft private pool, and clean mountain air in Kadav.",
 };
 
-const STORAGE_KEY = "suryavan_villa_estate_data_v1";
+const STORAGE_KEY = "suryavan_villa_estate_data_v2";
 
 const EstateDataContext = createContext<EstateDataContextType | undefined>(undefined);
 
 export function EstateDataProvider({ children }: { children: ReactNode }) {
-  // Load stored state or defaults
   const [villaSettings, setVillaSettings] = useState<VillaSettings>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_settings`);
       return saved ? JSON.parse(saved) : DEFAULT_VILLA_SETTINGS;
     } catch {
       return DEFAULT_VILLA_SETTINGS;
+    }
+  });
+
+  const [heroSettings, setHeroSettings] = useState<HeroSettings>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_hero`);
+      return saved ? JSON.parse(saved) : DEFAULT_HERO_SETTINGS;
+    } catch {
+      return DEFAULT_HERO_SETTINGS;
+    }
+  });
+
+  const [aboutSettings, setAboutSettings] = useState<AboutSettings>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_about`);
+      return saved ? JSON.parse(saved) : DEFAULT_ABOUT_SETTINGS;
+    } catch {
+      return DEFAULT_ABOUT_SETTINGS;
     }
   });
 
@@ -404,12 +552,6 @@ export function EstateDataProvider({ children }: { children: ReactNode }) {
           reply: "Take the Mumbai-Pune Expressway to Shedung/Chowk exit, then drive through Karjat to Kadav (~80 km, approx 1.5-2 hours).",
           timestamp: new Date(Date.now() - 3600000 * 2).toLocaleTimeString(),
         },
-        {
-          id: "log-2",
-          query: "Is pool heated and what are check in timings?",
-          reply: "Check-in is 1:00 PM and check-out is 11:00 AM. Our 40-ft pool is treated and filtered fresh daily.",
-          timestamp: new Date(Date.now() - 3600000 * 4).toLocaleTimeString(),
-        }
       ];
     } catch {
       return [];
@@ -420,6 +562,14 @@ export function EstateDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY}_settings`, JSON.stringify(villaSettings));
   }, [villaSettings]);
+
+  useEffect(() => {
+    localStorage.setItem(`${STORAGE_KEY}_hero`, JSON.stringify(heroSettings));
+  }, [heroSettings]);
+
+  useEffect(() => {
+    localStorage.setItem(`${STORAGE_KEY}_about`, JSON.stringify(aboutSettings));
+  }, [aboutSettings]);
 
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY}_accommodations`, JSON.stringify(accommodations));
@@ -468,6 +618,14 @@ export function EstateDataProvider({ children }: { children: ReactNode }) {
   // Methods
   const updateVillaSettings = (newSettings: Partial<VillaSettings>) => {
     setVillaSettings((prev) => ({ ...prev, ...newSettings }));
+  };
+
+  const updateHeroSettings = (newSettings: Partial<HeroSettings>) => {
+    setHeroSettings((prev) => ({ ...prev, ...newSettings }));
+  };
+
+  const updateAboutSettings = (newSettings: Partial<AboutSettings>) => {
+    setAboutSettings((prev) => ({ ...prev, ...newSettings }));
   };
 
   const updateAccommodation = (id: string, updated: Partial<Accommodation>) => {
@@ -590,6 +748,7 @@ export function EstateDataProvider({ children }: { children: ReactNode }) {
       bookingRef,
       createdAt: new Date().toISOString(),
       status: "pending",
+      leadType: "inquiry",
       source,
     };
     setInquiries((prev) => [newRecord, ...prev]);
@@ -600,7 +759,12 @@ export function EstateDataProvider({ children }: { children: ReactNode }) {
     setInquiries((prev) =>
       prev.map((inq) =>
         inq.id === id
-          ? { ...inq, status, ...(notes ? { internalNotes: notes } : {}) }
+          ? { 
+              ...inq, 
+              status, 
+              leadType: (status === "confirmed" || status === "checked-in" || status === "completed") ? "booking" : inq.leadType,
+              ...(notes ? { internalNotes: notes } : {}) 
+            }
           : inq
       )
     );
@@ -616,6 +780,32 @@ export function EstateDataProvider({ children }: { children: ReactNode }) {
     setInquiries((prev) => prev.filter((inq) => inq.id !== id));
   };
 
+  const convertInquiryToBooking = (
+    id: string, 
+    advancePaid: number, 
+    totalAmount: number, 
+    paymentMethod: BookingInquiryRecord["paymentMethod"] = "UPI"
+  ) => {
+    setInquiries((prev) =>
+      prev.map((inq) => {
+        if (inq.id === id) {
+          const balance = Math.max(0, totalAmount - advancePaid);
+          return {
+            ...inq,
+            status: "confirmed",
+            leadType: "booking",
+            totalAmount,
+            advancePaid,
+            balanceDue: balance,
+            paymentMethod,
+            internalNotes: `${inq.internalNotes || ""}\n[${new Date().toLocaleDateString()}] Converted to confirmed reservation with ₹${advancePaid} advance.`.trim(),
+          };
+        }
+        return inq;
+      })
+    );
+  };
+
   const addAiLog = (query: string, reply: string) => {
     const newLog = {
       id: `log-${Date.now()}`,
@@ -623,11 +813,25 @@ export function EstateDataProvider({ children }: { children: ReactNode }) {
       reply,
       timestamp: new Date().toLocaleTimeString(),
     };
-    setAiLogs((prev) => [newLog, ...prev.slice(0, 49)]); // keep last 50
+    setAiLogs((prev) => [newLog, ...prev.slice(0, 49)]);
+  };
+
+  const getLiveContextForAI = () => {
+    return {
+      villaSettings,
+      accommodations,
+      diningMenu,
+      mealPricing,
+      amenities,
+      attractions,
+      faqs,
+    };
   };
 
   const resetToDefaults = () => {
     setVillaSettings(DEFAULT_VILLA_SETTINGS);
+    setHeroSettings(DEFAULT_HERO_SETTINGS);
+    setAboutSettings(DEFAULT_ABOUT_SETTINGS);
     setAccommodations(ACCOMMODATIONS);
     setAmenities(AMENITIES);
     setAttractions(ATTRACTIONS);
@@ -642,9 +846,11 @@ export function EstateDataProvider({ children }: { children: ReactNode }) {
 
   const exportBackupJson = (): string => {
     const backupObj = {
-      version: "1.0",
+      version: "2.0",
       exportedAt: new Date().toISOString(),
       villaSettings,
+      heroSettings,
+      aboutSettings,
       accommodations,
       amenities,
       attractions,
@@ -663,6 +869,8 @@ export function EstateDataProvider({ children }: { children: ReactNode }) {
     try {
       const data = JSON.parse(jsonData);
       if (data.villaSettings) setVillaSettings(data.villaSettings);
+      if (data.heroSettings) setHeroSettings(data.heroSettings);
+      if (data.aboutSettings) setAboutSettings(data.aboutSettings);
       if (data.accommodations) setAccommodations(data.accommodations);
       if (data.amenities) setAmenities(data.amenities);
       if (data.attractions) setAttractions(data.attractions);
@@ -685,6 +893,10 @@ export function EstateDataProvider({ children }: { children: ReactNode }) {
       value={{
         villaSettings,
         updateVillaSettings,
+        heroSettings,
+        updateHeroSettings,
+        aboutSettings,
+        updateAboutSettings,
         accommodations,
         updateAccommodation,
         addAccommodation,
@@ -723,8 +935,10 @@ export function EstateDataProvider({ children }: { children: ReactNode }) {
         updateInquiryStatus,
         updateInquiryDetails,
         deleteInquiry,
+        convertInquiryToBooking,
         aiLogs,
         addAiLog,
+        getLiveContextForAI,
         resetToDefaults,
         exportBackupJson,
         importBackupJson,

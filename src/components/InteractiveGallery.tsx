@@ -7,9 +7,10 @@ import {
   Maximize2, 
   Eye
 } from "lucide-react";
-import { GALLERY_PHOTOS } from "../data/villaData";
+import { useEstateData } from "../context/EstateDataContext";
 
 export default function InteractiveGallery() {
+  const { galleryPhotos } = useEstateData();
   const [filter, setFilter] = useState<string>("all");
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
 
@@ -23,8 +24,8 @@ export default function InteractiveGallery() {
   ];
 
   const filteredPhotos = filter === "all"
-    ? GALLERY_PHOTOS
-    : GALLERY_PHOTOS.filter((p) => p.category === filter);
+    ? galleryPhotos
+    : galleryPhotos.filter((p) => p.category === filter);
 
   const openLightbox = (index: number) => {
     setActivePhotoIndex(index);

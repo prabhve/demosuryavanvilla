@@ -128,27 +128,22 @@ export default function App() {
         />
       </FadeInSection>
 
-      {/* Floating AI Concierge FAB */}
+      {/* Floating AI Concierge FAB - Pure AI Floating Icon */}
       <div className="fixed bottom-6 right-6 z-40 flex items-center group">
         <button
           onClick={() => handleOpenConcierge()}
-          className="relative flex items-center justify-center p-3.5 sm:p-4 rounded-full bg-gradient-to-br from-[#2a241b] via-[#1c1917] to-[#12100e] border-2 border-[#d4af37] text-amber-300 shadow-[0_8px_30px_rgb(212,175,55,0.35)] hover:shadow-[0_8px_35px_rgb(212,175,55,0.6)] transition-all duration-300 transform hover:scale-110 active:scale-95 cursor-pointer"
+          className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-[#2a241b] via-[#1c1917] to-[#12100e] border-2 border-[#d4af37] text-amber-300 shadow-[0_8px_30px_rgb(212,175,55,0.4)] hover:shadow-[0_8px_35px_rgb(212,175,55,0.7)] transition-all duration-300 transform hover:scale-110 active:scale-95 cursor-pointer"
           aria-label="Ask Sahyadri AI Concierge"
-          title="Ask Sahyadri AI Concierge"
+          title="Sahyadri AI Concierge"
         >
           {/* Subtle breathing glow */}
-          <span className="absolute -inset-1.5 rounded-full bg-gradient-to-r from-amber-500/40 via-yellow-400/30 to-amber-600/40 blur-sm group-hover:blur-md transition-all duration-300 animate-pulse -z-10" />
+          <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-500/40 via-yellow-400/30 to-amber-600/40 blur-md group-hover:blur-lg transition-all duration-300 animate-pulse -z-10" />
           
           <Sparkles className="w-6 h-6 text-amber-300 group-hover:text-yellow-200 transition-colors animate-pulse" />
-          
-          {/* Label for desktop */}
-          <span className="hidden sm:inline-block ml-2 text-xs font-bold uppercase tracking-wider text-amber-200 pr-1">
-            AI Concierge
-          </span>
 
           {/* Active online status indicator */}
-          <span className="absolute top-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-[#1c1917] rounded-full animate-ping" />
-          <span className="absolute top-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-[#1c1917] rounded-full" />
+          <span className="absolute top-0.5 right-0.5 w-3 h-3 bg-emerald-400 border-2 border-[#1c1917] rounded-full animate-ping" />
+          <span className="absolute top-0.5 right-0.5 w-3 h-3 bg-emerald-400 border-2 border-[#1c1917] rounded-full" />
         </button>
       </div>
 

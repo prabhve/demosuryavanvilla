@@ -15,7 +15,7 @@ import {
   ArrowRight,
   CheckCircle2
 } from "lucide-react";
-import { ACCOMMODATIONS, VILLA_CONTACT } from "../data/villaData";
+import { useEstateData } from "../context/EstateDataContext";
 import { BookingFormData } from "../types";
 
 interface DirectBookingEngineProps {
@@ -24,6 +24,7 @@ interface DirectBookingEngineProps {
 }
 
 export default function DirectBookingEngine({ initialRoomType, initialDates }: DirectBookingEngineProps) {
+  const { accommodations, villaSettings, addInquiry } = useEstateData();
   const todayStr = new Date().toISOString().split("T")[0];
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -37,7 +38,7 @@ export default function DirectBookingEngine({ initialRoomType, initialDates }: D
     checkIn: initialDates?.checkIn || tomorrow.toISOString().split("T")[0],
     checkOut: initialDates?.checkOut || dayAfter.toISOString().split("T")[0],
     guestsCount: initialDates?.guests || 8,
-    roomType: initialRoomType || "estate-buyout",
+    roomType: initialRoomType || (accommodations[0]?.id || "estate-buyout"),
     mealPlan: "AP (All Meals - Chef Special)",
     addons: ["Live Barbecue Setup", "Evening Bonfire Experience"],
     specialRequests: "",
@@ -59,7 +60,11 @@ export default function DirectBookingEngine({ initialRoomType, initialDates }: D
 
   // Dynamic calculations
   const calculation = useMemo(() => {
-    const selectedAcc = ACCOMMODATIONS.find((a) => a.id === formData.roomType) || ACCOMMODATIONS[0];
+    const selectedAcc = accommodations.find((a) => a.id === formData.roomType) || accommodations[0] || {
+      id: "estate-buyout",
+      name: "5-BHK Full Estate Buyout",
+      pricePerNight: 35000,
+    };
     
     // Calculate nights
     const start = new Date(formData.checkIn);
@@ -68,7 +73,7 @@ export default function DirectBookingEngine({ initialRoomType, initialDates }: D
     const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
 
     // Base rate
-    const baseNightlyRate = selectedAcc.pricePerNight;
+    const baseNightlyRate = (selectedAcc as any).pricePerNight || 35000;
     const roomTotal = baseNightlyRate * nights;
 
     // Meal Plan Total
@@ -100,7 +105,7 @@ export default function DirectBookingEngine({ initialRoomType, initialDates }: D
       directDiscount,
       estimatedTotal,
     };
-  }, [formData]);
+  }, [formData, accommodations]);
 
   const toggleAddon = (addonId: string) => {
     setFormData((prev) => ({
@@ -116,6 +121,9 @@ export default function DirectBookingEngine({ initialRoomType, initialDates }: D
     setIsSubmitting(true);
 
     try {
+      // Also register in local central state
+      const localRef = addInquiry(formData, "Website Form");
+
       const res = await fetch("/api/inquiry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -123,10 +131,10 @@ export default function DirectBookingEngine({ initialRoomType, initialDates }: D
       });
       const data = await res.json();
 
-      if (data.success) {
+      if (data.success || localRef) {
         setBookingSuccess({
-          bookingRef: data.bookingRef,
-          whatsappUrl: data.whatsappUrl,
+          bookingRef: data.bookingRef || localRef,
+          whatsappUrl: data.whatsappUrl || `https://wa.me/${villaSettings.whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello ${villaSettings.name}, I submitted booking inquiry ${localRef} for ${formData.guestName}.`)}`,
         });
         // Trigger celebratory confetti
         confetti({
@@ -136,7 +144,11 @@ export default function DirectBookingEngine({ initialRoomType, initialDates }: D
         });
       }
     } catch (err) {
-      console.error(err);
+      const localRef = addInquiry(formData, "Website Form");
+      setBookingSuccess({
+        bookingRef: localRef,
+        whatsappUrl: `https://wa.me/${villaSettings.whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello ${villaSettings.name}, I submitted booking inquiry ${localRef} for ${formData.guestName}.`)}`,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -308,7 +320,7 @@ export default function DirectBookingEngine({ initialRoomType, initialDates }: D
                     onChange={(e) => setFormData({ ...formData, roomType: e.target.value })}
                     className="w-full bg-[#141210] border border-stone-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
                   >
-                    {ACCOMMODATIONS.map((acc) => (
+                    {accommodations.map((acc) => (
                       <option key={acc.id} value={acc.id}>
                         {acc.name} — ₹{acc.pricePerNight.toLocaleString("en-IN")}/night
                       </option>
@@ -476,14 +488,14 @@ export default function DirectBookingEngine({ initialRoomType, initialDates }: D
                 <div className="text-xs text-stone-400">Prefer instant voice or chat booking?</div>
                 <div className="flex flex-col sm:flex-row gap-2.5">
                   <a
-                    href={`tel:${VILLA_CONTACT.phone}`}
+                    href={`tel:${villaSettings.phone}`}
                     className="flex-1 bg-stone-800 hover:bg-stone-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition"
                   >
                     <Phone className="w-3.5 h-3.5 text-[#d4af37]" />
                     <span>Call Reservations</span>
                   </a>
                   <a
-                    href={VILLA_CONTACT.whatsappUrl}
+                    href={`https://wa.me/${villaSettings.whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello ${villaSettings.name}, I would like to book a stay directly.`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition"

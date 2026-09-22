@@ -13,7 +13,7 @@ import {
   MapPin,
   RefreshCw
 } from "lucide-react";
-import { VILLA_CONTACT } from "../data/villaData";
+import { useEstateData } from "../context/EstateDataContext";
 
 interface Message {
   id: string;
@@ -28,11 +28,14 @@ interface AIConciergeModalProps {
 }
 
 export default function AIConciergeModal({ isOpen, onClose, initialPrompt }: AIConciergeModalProps) {
+  const estateData = useEstateData();
+  const { villaSettings } = estateData;
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       role: "assistant",
-      content: `Namaste! I am your **Sahyadri AI Concierge** for **Suryavan Villa** in Kadav, Karjat. 
+      content: `Namaste! I am your **Sahyadri AI Concierge** for **${villaSettings.name}** in ${villaSettings.location}. 
 
 I can assist you with:
 • **Custom Weekend Itineraries** (Sightseeing, pool time & bonfires)
@@ -81,6 +84,7 @@ How may I make your upcoming stay memorable?`,
         body: JSON.stringify({
           prompt: promptText,
           conversationHistory: messages.map((m) => ({ role: m.role, content: m.content })),
+          liveEstateData: estateData,
         }),
       });
 
@@ -88,7 +92,7 @@ How may I make your upcoming stay memorable?`,
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.reply || "I am at your service! Feel free to ask about our suites, private pool, or local attractions in Kadav.",
+        content: data.reply || `I am at your service! Feel free to ask about our suites, private pool, or local attractions in Kadav.`,
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
@@ -97,7 +101,7 @@ How may I make your upcoming stay memorable?`,
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: "Welcome to Suryavan Villa! You can connect with our villa manager directly on WhatsApp or call **+91 98201 44552** for immediate bookings.",
+          content: `Welcome to ${villaSettings.name}! You can connect with our villa manager directly on WhatsApp or call **${villaSettings.phone}** for immediate bookings.`,
         },
       ]);
     } finally {
@@ -107,7 +111,7 @@ How may I make your upcoming stay memorable?`,
 
   const quickChips = [
     "Plan a 2-day relaxing itinerary with pool & BBQ",
-    "How to reach Suryavan Villa by car from Mumbai?",
+    "How to reach from Mumbai or Pune?",
     "Tell me about the authentic Konkani food menu",
     "What are the rates for 5-BHK private estate buyout?",
   ];
@@ -129,11 +133,11 @@ How may I make your upcoming stay memorable?`,
               <div className="font-serif font-bold text-white text-base sm:text-lg flex items-center space-x-2">
                 <span>Sahyadri AI Concierge</span>
                 <span className="bg-emerald-950 text-emerald-400 border border-emerald-800/60 text-[10px] font-mono px-2 py-0.5 rounded-full font-normal">
-                  Live Online
+                  Live Grounded
                 </span>
               </div>
               <div className="text-xs text-amber-300 font-light">
-                Digital Host for Suryavan Villa • Kadav, Karjat
+                Digital Host for {villaSettings.name} • {villaSettings.location}
               </div>
             </div>
           </div>
@@ -194,7 +198,7 @@ How may I make your upcoming stay memorable?`,
               </div>
               <div className="bg-[#221e1a] border border-stone-800 rounded-2xl px-4 py-3 text-xs text-amber-300 flex items-center space-x-2">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                <span>Sahyadri Concierge is curating your personalized guide...</span>
+                <span>Sahyadri Concierge is curating live estate guidance...</span>
               </div>
             </div>
           )}
@@ -243,13 +247,13 @@ How may I make your upcoming stay memorable?`,
           <div className="flex items-center justify-between text-[11px] text-stone-400 pt-1">
             <span>Want to speak with the human villa host?</span>
             <a
-              href={VILLA_CONTACT.whatsappUrl}
+              href={`https://wa.me/${villaSettings.whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello ${villaSettings.name}, I am reaching out from the AI Concierge chat.`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center space-x-1"
             >
               <MessageSquare className="w-3 h-3" />
-              <span>WhatsApp Manager</span>
+              <span>WhatsApp Host</span>
             </a>
           </div>
         </div>

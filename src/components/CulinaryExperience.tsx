@@ -9,7 +9,7 @@ import {
   Calendar,
   MessageSquare
 } from "lucide-react";
-import { VILLA_CONTACT } from "../data/villaData";
+import { useEstateData } from "../context/EstateDataContext";
 
 interface CulinaryExperienceProps {
   onOpenBooking: () => void;
@@ -17,7 +17,53 @@ interface CulinaryExperienceProps {
 }
 
 export default function CulinaryExperience({ onOpenBooking, onOpenConcierge }: CulinaryExperienceProps) {
-  const [activeMenuTab, setActiveMenuTab] = useState<"konkani" | "bbq" | "north-indian" | "jain">("konkani");
+  const { mealPricing, diningMenu, villaSettings } = useEstateData();
+  const [activeMenuTab, setActiveMenuTab] = useState<string>("konkani");
+
+  const mealPlans = [
+    {
+      id: "ep",
+      name: "EP (European Plan)",
+      tag: "Room Only",
+      desc: "Stay only package with fully equipped modular kitchen access, refrigerator & BBQ grill area.",
+      pricing: `₹${mealPricing.epPrice.toLocaleString("en-IN")} / guest`,
+      inclusions: [
+        "Complete villa suite access",
+        "Self-catering kitchen & microwave",
+        "Complimentary tea/coffee supplies",
+        "Barbecue grill & skewers on request"
+      ],
+      highlight: false,
+    },
+    {
+      id: "cp",
+      name: "CP (Continental Plan)",
+      tag: "Bed & Breakfast",
+      desc: "Daily fresh village Maharashtrian breakfast spread served piping hot in the dining salon or poolside lawn.",
+      pricing: `₹${mealPricing.cpPrice.toLocaleString("en-IN")} / guest / day`,
+      inclusions: [
+        "Poha, Misal Pav, Upma or Idli Sambhar",
+        "Farm-fresh seasonal fruit platter",
+        "Kadak Masala Chai & filter coffee",
+        "Toast with butter & preserves"
+      ],
+      highlight: false,
+    },
+    {
+      id: "ap",
+      name: "AP (American Plan - Chef Special)",
+      tag: "All 4 Meals Included",
+      desc: "Our signature farm-to-table package covering Breakfast, Traditional Lunch, High Tea snacks, and Evening Barbecue & Dinner.",
+      pricing: `₹${mealPricing.apPrice.toLocaleString("en-IN")} / guest / day`,
+      inclusions: [
+        "All 4 Meals cooked by dedicated in-house chef",
+        "Unlimited Konkani/Maharashtrian or North Indian menu",
+        "Live poolside barbecue tandoor skewer session",
+        "Pure Veg & separate Jain kitchen available"
+      ],
+      highlight: true,
+    },
+  ];
 
   const menuSections = {
     konkani: {
@@ -67,7 +113,7 @@ export default function CulinaryExperience({ onOpenBooking, onOpenConcierge }: C
     },
   };
 
-  const currentMenu = menuSections[activeMenuTab];
+  const currentMenu = (menuSections as Record<string, { title: string; subtitle: string; items: { name: string; desc: string }[]; image: string }>)[activeMenuTab] || menuSections.konkani;
 
   return (
     <section id="dining" className="py-20 lg:py-28 bg-[#faf8f5] text-stone-900 relative">
@@ -89,93 +135,48 @@ export default function CulinaryExperience({ onOpenBooking, onOpenConcierge }: C
 
         {/* Meal Package Options Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          <div className="bg-white rounded-2xl p-6 shadow-md border border-stone-200 hover:border-amber-400 transition flex flex-col justify-between">
-            <div className="space-y-3">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md">
-                Plan 1: Room Only (EP)
-              </span>
-              <h3 className="font-serif text-xl font-bold text-stone-900">
-                Self-Cook / Basic Stay
-              </h3>
-              <p className="text-stone-600 text-xs sm:text-sm">
-                Full access to the estate, with tea/coffee amenities. In-house kitchen can be engaged on an à la carte or grocery basis.
-              </p>
-              <ul className="space-y-1.5 text-xs text-stone-700 pt-2">
-                <li className="flex items-center space-x-1.5">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Complimentary tea & coffee station</span>
-                </li>
-                <li className="flex items-center space-x-1.5">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Kitchen refrigerator & microwave access</span>
-                </li>
-              </ul>
+          {mealPlans.map((plan, idx) => (
+            <div 
+              key={plan.id}
+              className={`rounded-2xl p-6 transition flex flex-col justify-between ${
+                plan.highlight 
+                  ? "bg-gradient-to-b from-amber-500/10 to-white shadow-xl border-2 border-amber-500 relative" 
+                  : "bg-white shadow-md border border-stone-200 hover:border-amber-400"
+              }`}
+            >
+              {plan.highlight && (
+                <div className="absolute -top-3 right-4 bg-amber-600 text-white text-[10px] font-bold uppercase px-3 py-0.5 rounded-full shadow-sm">
+                  Most Popular
+                </div>
+              )}
+              <div className="space-y-3">
+                <span className={`text-[11px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md ${
+                  plan.highlight ? "text-amber-900 bg-amber-200/80" : "text-amber-700 bg-amber-50"
+                }`}>
+                  Plan {idx + 1}: {plan.name}
+                </span>
+                <h3 className="font-serif text-xl font-bold text-stone-900">
+                  {plan.name}
+                </h3>
+                <p className="text-stone-600 text-xs sm:text-sm">
+                  {plan.desc}
+                </p>
+                <ul className="space-y-1.5 text-xs text-stone-700 pt-2">
+                  {plan.inclusions.map((inc, i) => (
+                    <li key={i} className="flex items-center space-x-1.5">
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{inc}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className={`pt-4 mt-4 border-t text-xs font-bold ${
+                plan.highlight ? "border-amber-200 text-amber-900" : "border-stone-100 text-stone-600"
+              }`}>
+                {plan.pricing}
+              </div>
             </div>
-            <div className="pt-4 mt-4 border-t border-stone-100 text-xs font-semibold text-stone-500">
-              Standard base rate
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-b from-amber-500/10 to-white rounded-2xl p-6 shadow-xl border-2 border-amber-500 relative flex flex-col justify-between">
-            <div className="absolute -top-3 right-4 bg-amber-600 text-white text-[10px] font-bold uppercase px-3 py-0.5 rounded-full shadow-sm">
-              Most Popular
-            </div>
-            <div className="space-y-3">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-amber-900 bg-amber-200/80 px-2.5 py-1 rounded-md">
-                Plan 2: All Meals Package (AP)
-              </span>
-              <h3 className="font-serif text-xl font-bold text-stone-900">
-                All-Inclusive Chef Specials
-              </h3>
-              <p className="text-stone-600 text-xs sm:text-sm">
-                Hassle-free gourmet package covering Breakfast, Lunch, Evening High Tea with snacks, and Dinner + Barbecue.
-              </p>
-              <ul className="space-y-1.5 text-xs text-stone-700 pt-2">
-                <li className="flex items-center space-x-1.5">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Unlimited home-cooked meals by private chef</span>
-                </li>
-                <li className="flex items-center space-x-1.5">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Both Veg, Non-Veg & Jain options prepared</span>
-                </li>
-                <li className="flex items-center space-x-1.5">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Live barbecue & bonfire evening snacks</span>
-                </li>
-              </ul>
-            </div>
-            <div className="pt-4 mt-4 border-t border-amber-200 text-xs font-bold text-amber-900">
-              ₹1,400 - ₹1,800 / person / day
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-md border border-stone-200 hover:border-amber-400 transition flex flex-col justify-between">
-            <div className="space-y-3">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md">
-                Plan 3: Custom Events & BBQ
-              </span>
-              <h3 className="font-serif text-xl font-bold text-stone-900">
-                Bespoke Party Catering
-              </h3>
-              <p className="text-stone-600 text-xs sm:text-sm">
-                Tailored buffet setup for birthdays, pool sundowners, and large group gatherings with live tandoor and desserts.
-              </p>
-              <ul className="space-y-1.5 text-xs text-stone-700 pt-2">
-                <li className="flex items-center space-x-1.5">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Custom customized menu curation</span>
-                </li>
-                <li className="flex items-center space-x-1.5">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Poolside buffet and table setups</span>
-                </li>
-              </ul>
-            </div>
-            <div className="pt-4 mt-4 border-t border-stone-100 text-xs font-semibold text-stone-500">
-              Custom quotation on inquiry
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Interactive Menu Showcase */}
@@ -263,7 +264,7 @@ export default function CulinaryExperience({ onOpenBooking, onOpenConcierge }: C
                   <span>Customize with AI Concierge</span>
                 </button>
                 <a
-                  href={`https://wa.me/${VILLA_CONTACT.whatsappNumber}?text=${encodeURIComponent("Hello Chef & Reservations Team at Suryavan Villa, I would like to inquire about food menu options for our upcoming stay.")}`}
+                  href={`https://wa.me/${villaSettings.whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello Chef & Reservations Team at ${villaSettings.name}, I would like to inquire about food menu options for our upcoming stay.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center space-x-1.5 transition"

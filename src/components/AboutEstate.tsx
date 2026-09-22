@@ -9,7 +9,7 @@ import {
   ArrowRight,
   SunMedium
 } from "lucide-react";
-import { VILLA_CONTACT } from "../data/villaData";
+import { useEstateData } from "../context/EstateDataContext";
 
 interface AboutEstateProps {
   onOpenBooking: () => void;
@@ -17,7 +17,9 @@ interface AboutEstateProps {
 }
 
 export default function AboutEstate({ onOpenBooking, onOpenConcierge }: AboutEstateProps) {
-  const stats = [
+  const { aboutSettings, villaSettings } = useEstateData();
+
+  const stats = aboutSettings.stats || [
     { value: "15,000+", label: "Sq. Ft. Private Estate", sub: "Gated green grounds" },
     { value: "40 Ft.", label: "Private Swimming Pool", sub: "Crystal clean with loungers" },
     { value: "5 BHK", label: "Luxury Suites", sub: "Spacious AC bedrooms" },
@@ -31,14 +33,14 @@ export default function AboutEstate({ onOpenBooking, onOpenConcierge }: AboutEst
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60 text-xs font-bold uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-            <span>Welcome to Suryavan Villa</span>
+            <span>{aboutSettings.badge || "Welcome to Suryavan Villa"}</span>
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#1c1917] tracking-tight leading-tight">
-            A Haven of Exclusive Luxury in Kadav, Karjat
+            {aboutSettings.heading || "A Haven of Exclusive Luxury in Kadav, Karjat"}
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-amber-400 to-amber-600 mx-auto mt-4 rounded-full" />
           <p className="mt-4 text-stone-600 text-base sm:text-lg leading-relaxed">
-            Designed as a private sanctuary away from city chaos, Suryavan Villa blends contemporary luxury with the unhurried rhythm of rural Maharashtra, surrounded by the dramatic peaks of the Sahyadri mountains.
+            {aboutSettings.subheading || "Designed as a private sanctuary away from city chaos, Suryavan Villa blends contemporary luxury with the unhurried rhythm of rural Maharashtra, surrounded by the dramatic peaks of the Sahyadri mountains."}
           </p>
         </div>
 
@@ -51,10 +53,10 @@ export default function AboutEstate({ onOpenBooking, onOpenConcierge }: AboutEst
                 Pure Seclusion, Bespoke Hospitality & Unmatched Comfort
               </h3>
               <p className="text-stone-600 leading-relaxed text-sm sm:text-base">
-                Whether you are seeking a restful family weekend, celebrating a milestone anniversary, hosting a creative corporate retreat, or yearning for a slow poolside holiday with friends, Suryavan Villa offers 100% exclusive privacy.
+                {aboutSettings.storyP1}
               </p>
               <p className="text-stone-600 leading-relaxed text-sm sm:text-base">
-                Wake up to the golden rays rising above the hills, plunge into your private pool, relish piping-hot Maharashtrian breakfast with farm-fresh herbs, and spend your evenings around a crackling bonfire with sizzling tandoori barbecue.
+                {aboutSettings.storyP2}
               </p>
             </div>
 

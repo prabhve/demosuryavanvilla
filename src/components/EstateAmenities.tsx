@@ -12,7 +12,7 @@ import {
   ArrowRight,
   ShieldCheck
 } from "lucide-react";
-import { AMENITIES } from "../data/villaData";
+import { useEstateData } from "../context/EstateDataContext";
 
 interface EstateAmenitiesProps {
   onOpenBooking: () => void;
@@ -20,6 +20,7 @@ interface EstateAmenitiesProps {
 }
 
 export default function EstateAmenities({ onOpenBooking, onOpenConcierge }: EstateAmenitiesProps) {
+  const { amenities } = useEstateData();
   const [activeTab, setActiveTab] = useState<string>("all");
 
   const categories = [
@@ -31,8 +32,8 @@ export default function EstateAmenities({ onOpenBooking, onOpenConcierge }: Esta
   ];
 
   const filteredAmenities = activeTab === "all"
-    ? AMENITIES
-    : AMENITIES.filter((a) => a.category === activeTab);
+    ? amenities
+    : amenities.filter((a) => a.category === activeTab);
 
   // Helper for icon
   const renderIcon = (name: string) => {

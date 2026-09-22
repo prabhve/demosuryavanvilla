@@ -10,7 +10,7 @@ import {
   CheckCircle2, 
   UtensilsCrossed 
 } from "lucide-react";
-import { ACCOMMODATIONS, VILLA_CONTACT } from "../data/villaData";
+import { useEstateData } from "../context/EstateDataContext";
 import { BookingFormData } from "../types";
 
 interface BookingModalProps {
@@ -26,6 +26,7 @@ export default function BookingModal({
   preselectedRoom,
   customDates,
 }: BookingModalProps) {
+  const { accommodations, villaSettings, addInquiry } = useEstateData();
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const dayAfter = new Date();
@@ -38,7 +39,7 @@ export default function BookingModal({
     checkIn: customDates?.checkIn || tomorrow.toISOString().split("T")[0],
     checkOut: customDates?.checkOut || dayAfter.toISOString().split("T")[0],
     guestsCount: customDates?.guests || 6,
-    roomType: preselectedRoom || "estate-buyout",
+    roomType: preselectedRoom || (accommodations[0]?.id || "estate-buyout"),
     mealPlan: "AP (All Meals - Chef Special)",
     addons: ["Evening Bonfire Experience"],
     specialRequests: "",
@@ -66,11 +67,19 @@ export default function BookingModal({
 
   if (!isOpen) return null;
 
+  const selectedAccommodation = accommodations.find((a) => a.id === formData.roomType) || accommodations[0] || {
+    id: "estate-buyout",
+    name: "5-BHK Full Estate Buyout",
+    pricePerNight: 35000,
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
+      const localRef = addInquiry(formData, "Website Form");
+
       const res = await fetch("/api/inquiry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,10 +87,10 @@ export default function BookingModal({
       });
       const data = await res.json();
 
-      if (data.success) {
+      if (data.success || localRef) {
         setSuccessData({
-          bookingRef: data.bookingRef,
-          whatsappUrl: data.whatsappUrl,
+          bookingRef: data.bookingRef || localRef,
+          whatsappUrl: data.whatsappUrl || `https://wa.me/${villaSettings.whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello ${villaSettings.name}, I submitted booking inquiry ${localRef} for ${formData.guestName}.`)}`,
         });
         confetti({
           particleCount: 70,
@@ -90,13 +99,15 @@ export default function BookingModal({
         });
       }
     } catch (err) {
-      console.error(err);
+      const localRef = addInquiry(formData, "Website Form");
+      setSuccessData({
+        bookingRef: localRef,
+        whatsappUrl: `https://wa.me/${villaSettings.whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello ${villaSettings.name}, I submitted booking inquiry ${localRef} for ${formData.guestName}.`)}`,
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const selectedAccommodation = ACCOMMODATIONS.find((a) => a.id === formData.roomType) || ACCOMMODATIONS[0];
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
@@ -162,10 +173,10 @@ export default function BookingModal({
                 <span>Direct Booking Desk</span>
               </span>
               <h3 className="font-serif text-2xl font-bold text-white">
-                Reserve Suryavan Villa
+                Reserve {villaSettings.name}
               </h3>
               <p className="text-stone-400 text-xs">
-                Tambas, Kadav, Karjat, Maharashtra 410201
+                {villaSettings.location}
               </p>
             </div>
 
@@ -239,7 +250,7 @@ export default function BookingModal({
                   onChange={(e) => setFormData({ ...formData, roomType: e.target.value })}
                   className="w-full bg-[#12100e] border border-stone-700 rounded-xl px-3.5 py-2.5 text-white focus:border-amber-400 focus:outline-none"
                 >
-                  {ACCOMMODATIONS.map((acc) => (
+                  {accommodations.map((acc) => (
                     <option key={acc.id} value={acc.id}>
                       {acc.name} — from ₹{acc.pricePerNight.toLocaleString("en-IN")}/night
                     </option>

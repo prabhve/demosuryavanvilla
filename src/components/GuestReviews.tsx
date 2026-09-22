@@ -8,17 +8,35 @@ import {
   ChevronRight,
   ShieldCheck
 } from "lucide-react";
-import { REVIEWS } from "../data/villaData";
+import { useEstateData } from "../context/EstateDataContext";
 
 export default function GuestReviews() {
+  const { reviews } = useEstateData();
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  const reviewList = reviews && reviews.length > 0 ? reviews : [
+    {
+      id: "rev-1",
+      author: "Aditya & Neha Sharma",
+      location: "Mumbai",
+      rating: 5,
+      date: "February 2025",
+      stayType: "Family Weekend",
+      title: "An unforgettable private oasis in Kadav",
+      comment: "Suryavan Villa exceeded our expectations! The 40-ft swimming pool was sparkling clean, chef-cooked Kombdi Vade was sublime, and the lawn was enormous for kids to play.",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      verified: true,
+    }
+  ];
+
+  const safeIndex = currentIndex % reviewList.length;
+
   const nextReview = () => {
-    setCurrentIndex((prev) => (prev + 1) % REVIEWS.length);
+    setCurrentIndex((prev) => (prev + 1) % reviewList.length);
   };
 
   const prevReview = () => {
-    setCurrentIndex((prev) => (prev - 1 + REVIEWS.length) % REVIEWS.length);
+    setCurrentIndex((prev) => (prev - 1 + reviewList.length) % reviewList.length);
   };
 
   return (
@@ -50,7 +68,7 @@ export default function GuestReviews() {
 
         {/* Reviews Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-          {REVIEWS.map((review) => (
+          {reviewList.map((review) => (
             <div
               key={review.id}
               className="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border border-stone-200/90 hover:border-amber-400 hover:shadow-xl transition flex flex-col justify-between space-y-6 relative group"
@@ -59,7 +77,7 @@ export default function GuestReviews() {
                 {/* Top Row with rating & tag */}
                 <div className="flex items-center justify-between">
                   <div className="flex text-amber-500">
-                    {[...Array(review.rating)].map((_, i) => (
+                    {[...Array(review.rating || 5)].map((_, i) => (
                       <Star key={i} className="w-4 h-4 fill-current" />
                     ))}
                   </div>
@@ -83,7 +101,7 @@ export default function GuestReviews() {
               <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <img
-                    src={review.avatar}
+                    src={review.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
                     alt={review.author}
                     className="w-11 h-11 rounded-full object-cover border-2 border-amber-400"
                   />

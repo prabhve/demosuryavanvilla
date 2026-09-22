@@ -242,43 +242,88 @@ I would like to book a stay.
   });
 });
 
-// API: AI Concierge & Itinerary Planner (Gemini powered)
+// API: AI Concierge & Itinerary Planner (Gemini powered with Real-time Estate Database Grounding)
 app.post("/api/concierge", async (req, res) => {
   try {
-    const { prompt, conversationHistory } = req.body;
+    const { prompt, conversationHistory, liveEstateData } = req.body;
     if (!prompt) {
       return res.status(400).json({ error: "Prompt is required" });
     }
 
     const ai = getGeminiClient();
 
-    const systemInstruction = `You are "Sahyadri Concierge", the gracious, highly knowledgeable digital host & guest assistant for "Suryavan Villa", a luxury private villa resort located at 32/2B/3, Tambas, Kadav, Karjat, Maharashtra 410201.
+    // Dynamically construct ground truth from live estate data if passed from frontend, otherwise default
+    const villaSettings = liveEstateData?.villaSettings || SURYAVAN_VILLA_INFO;
+    const accommodations = liveEstateData?.accommodations || SURYAVAN_VILLA_INFO.accommodations;
+    const diningMenu = liveEstateData?.diningMenu || [];
+    const mealPricing = liveEstateData?.mealPricing || { epPrice: 0, cpPrice: 450, apPrice: 1500 };
+    const amenities = liveEstateData?.amenities || SURYAVAN_VILLA_INFO.highlights;
+    const attractions = liveEstateData?.attractions || SURYAVAN_VILLA_INFO.nearbyAttractions;
+    const customRules = liveEstateData?.villaSettings?.aiSystemPromptAddition || "";
 
-Key facts about Suryavan Villa:
-- Location: Tambas village in Kadav, near Karjat, Raigad district, Maharashtra. Easy drive from Mumbai (~80km / 1.5-2 hrs) and Pune (~100km / 2 hrs). Nearest railway station is Karjat Station (12km).
-- Features: Private crystal clear pool, 5 luxurious AC bedrooms, grand living hall, private lawn (for intimate events, sundowners, birthdays up to 100 people), gazebo with bonfire and BBQ, in-house dedicated chef preparing authentic Konkani/Maharashtrian, North Indian, Jain, and Continental cuisines.
-- Check-in: 1:00 PM | Check-out: 11:00 AM.
-- Pets: Pet-friendly upon prior request.
-- Local sights: Kadav Jain Temple (3 km), ND Studios (12 km), Kothaligad/Peth Fort (15 km), Bhivpuri Waterfalls (18 km), Kondana Caves (24 km), Morbe Dam (22 km).
-- Phone & WhatsApp: +91 98201 44552 | Email: stay@suryavanvilla.com.
+    const accommodationsText = accommodations.map((a: any) => 
+      `- ${a.name} (${a.type}): Weekday: ₹${a.pricePerNight}/night, Weekend: ₹${a.weekendPrice}/night. Capacity: ${a.capacity}. Bedrooms: ${a.bedrooms || a.bedroomsCount || "Standard"}. Features: ${(a.features || []).join(", ")}`
+    ).join("\n");
 
-Guidelines for your response:
-1. Speak with hospitality warmth, elegance, and enthusiasm.
-2. If asked for itineraries (e.g. 1-day, 2-day, weekend plan), design a custom, relaxed schedule featuring pool time, outdoor barbecue, bonfire under the stars, farm-to-table food at Suryavan Villa, and optional nearby visits like Kothaligad or ND Studios.
-3. If asked for driving routes from Mumbai or Pune, provide clear highway instructions (e.g. Mumbai -> Mumbai-Pune Expressway -> Shedung/Chowk exit -> Karjat -> Kadav -> Tambas).
-4. If asked about prices, provide the indicative rates (e.g. ₹24,999/night for full 5-BHK estate buyout on weekdays, ₹32,999 on weekends, individual suites starting ₹4,499) and offer direct booking via WhatsApp or the booking form on the page.
-5. Keep formatting clean with bullet points and bold highlights.`;
+    const diningText = diningMenu.length > 0 
+      ? diningMenu.map((d: any) => `- ${d.name} (${d.category}, ${d.isVeg ? "Pure Veg" : "Non-Veg"}${d.isChefSpecial ? ", Chef Special" : ""}): ${d.description}`).join("\n")
+      : "- Authentic Konkani Chicken & Fish Thali, Veg Village Specials, Puran Poli, Solkadhi, Live Poolside Barbecue.";
+
+    const attractionsText = attractions.map((att: any) => 
+      `- ${att.name || att.title} (${att.distance || "Nearby"}, ${att.driveTime || "short drive"}): ${att.description || ""}`
+    ).join("\n");
+
+    const systemInstruction = `You are "Sahyadri Concierge", the official luxury digital host and booking assistant for "Suryavan Villa", a private 5-BHK luxury nature estate in Kadav, Karjat, Maharashtra.
+
+LIVE REAL-TIME VILLA KNOWLEDGE BASE:
+- Estate Name: ${villaSettings.name || "Suryavan Villa"}
+- Full Address: ${villaSettings.addressLine1 || "32/2B/3, Tambas"}, ${villaSettings.city || "Kadav, Karjat"}, Maharashtra ${villaSettings.postalCode || "410201"}
+- Check-In: ${villaSettings.checkInTime || "01:00 PM"} | Check-Out: ${villaSettings.checkOutTime || "11:00 AM"}
+- Phone: ${villaSettings.phone || "+91 98201 44552"} | WhatsApp: ${villaSettings.whatsappNumber || "+91 98201 44552"} | Email: ${villaSettings.email || "stay@suryavanvilla.com"}
+- Direct UPI ID: ${villaSettings.upiId || "suryavanvilla@okhdfcbank"}
+
+ACCOMMODATIONS & REAL-TIME RATES:
+${accommodationsText}
+
+MEAL PLANS & CHEF DINING:
+- EP Plan (Room Only): ₹${mealPricing.epPrice}
+- CP Plan (With Breakfast): ₹${mealPricing.cpPrice} per person/day
+- AP Plan (All Meals Gourmet): ₹${mealPricing.apPrice} per person/day (Breakfast, Lunch, High Tea, Dinner)
+Signature Dishes:
+${diningText}
+
+NEARBY ATTRACTIONS IN KADAV / KARJAT:
+${attractionsText}
+
+ESTATE POLICIES & FEATURES:
+- 40-ft private filtered swimming pool with kids shallow deck and underwater lighting
+- 100% Diesel Generator (DG Set) power backup with automatic switchover
+- High-speed 300 Mbps fiber Wi-Fi throughout the villa
+- 15,000 sq. ft. celebration lawn, open-air bonfire pit & poolside barbecue
+- Games lounge: Carrom, Pool table, Table Tennis, Board games
+- Music allowed outdoors until 10:00 PM, continues indoors after 10:00 PM
+- Pet-friendly with prior notification
+
+SPECIAL MANAGER DIRECTIVES & HOUSE RULES:
+${customRules ? customRules : "Warmly welcome all guests with Maharashtrian hospitality. Guide them on driving routes and offer customized quotation breakdown."}
+
+INSTRUCTIONS FOR GENERATING RESPONSES:
+1. Always base all pricing, room names, and features on the live database above.
+2. If the user asks for a price quote or availability, give the accurate weekday/weekend rate and calculate estimate including meal plans if requested.
+3. If the user asks for an itinerary (1-day, 2-day, or 3-day weekend), create a bespoke, luxurious schedule combining pool relaxation, in-house Konkani meals, evening bonfire & barbecue, and excursions to Kadav Jain Temple or Kothaligad Fort.
+4. If asked about driving routes: From Mumbai (~80 km, 1.5-2 hrs via Mumbai-Pune Expressway -> Shedung/Chowk exit -> Karjat -> Kadav); From Pune (~100 km, 2 hrs via Expressway -> Khalapur -> Karjat -> Kadav).
+5. Always maintain a polite, polished, and hospitable tone. Keep formatting clean with bullet points and bold key details.`;
 
     if (!ai) {
-      // Fallback if no API key is set yet
       return res.json({
-        reply: `Namaste and welcome to Suryavan Villa! Located in serene Kadav, Karjat, our luxury villa offers a private pool, lush green lawns, bonfire nights, and delicious home-cooked meals by our in-house chef. 
+        reply: `Namaste and welcome to Suryavan Villa in Kadav, Karjat! 
+We offer exclusive 5-BHK buyout and private suites with our 40-ft swimming pool, 15,000 sq. ft. celebration lawns, bonfire, and authentic Konkani meals prepared fresh by our private chef.
 
-To visit us from Mumbai or Pune, take the Expressway to Karjat and head towards Kadav (Tambas). For reservations or personalized arrangements, call or WhatsApp our manager at **+91 98201 44552**!`,
+For direct reservations or instant inquiry assistance, please call or WhatsApp our manager directly at **${villaSettings.phone || "+91 98201 44552"}**.`,
       });
     }
 
-    // Build contents for multi-turn chat if history is provided
+    // Build contents for multi-turn chat
     const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
     if (Array.isArray(conversationHistory)) {
       conversationHistory.slice(-6).forEach((msg) => {
@@ -294,7 +339,7 @@ To visit us from Mumbai or Pune, take the Expressway to Karjat and head towards 
     });
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
+      model: "gemini-2.5-flash",
       contents,
       config: {
         systemInstruction,

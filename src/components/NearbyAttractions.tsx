@@ -7,7 +7,7 @@ import {
   ExternalLink,
   ChevronRight
 } from "lucide-react";
-import { ATTRACTIONS, VILLA_CONTACT } from "../data/villaData";
+import { useEstateData } from "../context/EstateDataContext";
 import { Attraction } from "../types";
 
 interface NearbyAttractionsProps {
@@ -15,6 +15,7 @@ interface NearbyAttractionsProps {
 }
 
 export default function NearbyAttractions({ onOpenConcierge }: NearbyAttractionsProps) {
+  const { attractions } = useEstateData();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const categories = [
@@ -26,8 +27,8 @@ export default function NearbyAttractions({ onOpenConcierge }: NearbyAttractions
   ];
 
   const filteredAttractions = selectedCategory === "all"
-    ? ATTRACTIONS
-    : ATTRACTIONS.filter((a) => a.category === selectedCategory);
+    ? attractions
+    : attractions.filter((a) => a.category === selectedCategory);
 
   return (
     <section id="attractions" className="py-20 lg:py-28 bg-[#faf8f5] text-stone-900 relative">

@@ -6,18 +6,27 @@ import {
   MessageSquare,
   Phone
 } from "lucide-react";
-import { FAQS, VILLA_CONTACT } from "../data/villaData";
+import { useEstateData } from "../context/EstateDataContext";
 
 interface FAQSectionProps {
   onOpenConcierge: (prompt?: string) => void;
 }
 
 export default function FAQSection({ onOpenConcierge }: FAQSectionProps) {
+  const { faqs, villaSettings } = useEstateData();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const toggleFaq = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
+  const faqList = faqs && faqs.length > 0 ? faqs : [
+    {
+      question: "What is the check-in and check-out timing?",
+      answer: "Standard check-in is at 1:00 PM and check-out is at 11:00 AM.",
+      category: "General"
+    }
+  ];
 
   return (
     <section id="faqs" className="py-20 lg:py-28 bg-[#faf8f5] text-stone-900 relative">
@@ -33,13 +42,13 @@ export default function FAQSection({ onOpenConcierge }: FAQSectionProps) {
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-amber-400 to-amber-600 mx-auto mt-4 rounded-full" />
           <p className="mt-4 text-stone-600 text-base sm:text-lg">
-            Find immediate answers regarding check-in timings, chef menus, pool guidelines, and booking policies for Suryavan Villa, Kadav.
+            Find immediate answers regarding check-in timings, chef menus, pool guidelines, and booking policies for {villaSettings.name}, Kadav.
           </p>
         </div>
 
         {/* Accordion List */}
         <div className="space-y-4">
-          {FAQS.map((faq, idx) => {
+          {faqList.map((faq, idx) => {
             const isOpen = openIndex === idx;
             return (
               <div
@@ -82,14 +91,14 @@ export default function FAQSection({ onOpenConcierge }: FAQSectionProps) {
 
           <div className="flex flex-wrap gap-3 shrink-0">
             <button
-              onClick={() => onOpenConcierge("What are the cancellation and booking terms at Suryavan Villa?")}
+              onClick={() => onOpenConcierge(`What are the cancellation and booking terms at ${villaSettings.name}?`)}
               className="px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-[#f5efe6] text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>Ask AI Guide</span>
             </button>
             <a
-              href={VILLA_CONTACT.whatsappUrl}
+              href={`https://wa.me/${villaSettings.whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello ${villaSettings.name}, I have a query regarding stay policies.`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center space-x-1.5 transition"
