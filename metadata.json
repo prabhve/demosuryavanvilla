@@ -1,0 +1,6 @@
+{
+  "name": "Suryavan Villa - Luxury Pool Resort & Estate, Kadav",
+  "description": "Official luxury hospitality website for Suryavan Villa in Kadav, Karjat, Maharashtra. Features private pool suites, authentic dining, event lawns, instant reservation engine, and Sahyadri AI Concierge.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
