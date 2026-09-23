@@ -2,6 +2,7 @@ import { useState, lazy, Suspense } from "react";
 import HeaderNavbar from "./components/HeaderNavbar";
 import HeroSection from "./components/HeroSection";
 import FadeInSection from "./components/FadeInSection";
+import SmoothScroll from "./components/SmoothScroll";
 import { Sparkles } from "lucide-react";
 
 // Lazy-loaded major sections for optimal initial bundle size & faster page load
@@ -58,6 +59,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#141210] text-stone-100 selection:bg-amber-500 selection:text-black font-sans antialiased overflow-x-hidden">
+      {/* Butter-Smooth Inertia Scroll Engine */}
+      <SmoothScroll />
+
       {/* 1. Top Luxury Header - Eagerly loaded for instant interactivity */}
       <HeaderNavbar
         onOpenBooking={() => handleOpenBooking()}

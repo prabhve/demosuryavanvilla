@@ -306,18 +306,37 @@ export default function HeroSection({ onOpenBooking, onOpenConcierge }: HeroSect
           </div>
         </motion.div>
 
-        {/* Slide Indicators */}
-        <div className="flex justify-center space-x-2 mt-8">
-          {slides.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentSlide(idx)}
-              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                idx === activeIndex ? "w-8 bg-[#d4af37]" : "w-2 bg-stone-600 hover:bg-stone-400"
-              }`}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
+        {/* Slide Indicators & Scroll Down Indicator */}
+        <div className="flex flex-col items-center space-y-6 mt-8">
+          <div className="flex justify-center space-x-2">
+            {slides.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentSlide(idx)}
+                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  idx === activeIndex ? "w-8 bg-[#d4af37]" : "w-2 bg-stone-600 hover:bg-stone-400"
+                }`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+
+          <a
+            href="#overview"
+            aria-label="Scroll to estate overview"
+            className="inline-flex flex-col items-center text-stone-400 hover:text-amber-300 transition-colors group cursor-pointer"
+          >
+            <span className="text-[10px] tracking-[0.2em] uppercase font-medium mb-1.5 text-stone-400 group-hover:text-amber-300 transition-colors">
+              Explore Estate
+            </span>
+            <div className="w-5 h-9 rounded-full border border-stone-500/60 group-hover:border-amber-400/80 flex items-start justify-center p-1 transition-colors">
+              <motion.div
+                animate={{ y: [0, 12, 0] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(212,175,55,0.8)]"
+              />
+            </div>
+          </a>
         </div>
       </div>
     </section>

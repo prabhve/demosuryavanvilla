@@ -27,8 +27,8 @@ export default function AboutEstate({ onOpenBooking, onOpenConcierge }: AboutEst
   ];
 
   return (
-    <section id="overview" className="py-20 lg:py-28 bg-[#faf8f5] text-stone-800 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="about" className="py-20 lg:py-28 bg-[#faf8f5] text-stone-800 relative overflow-hidden scroll-mt-20">
+      <div id="overview" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60 text-xs font-bold uppercase tracking-wider mb-3">

@@ -12,7 +12,8 @@ import {
   Sun,
   Clock,
   LayoutDashboard,
-  Shield
+  Shield,
+  ChevronUp
 } from "lucide-react";
 import { VILLA_CONTACT } from "../data/villaData";
 
@@ -24,6 +25,17 @@ interface FooterSectionProps {
 
 export default function FooterSection({ onOpenBooking, onOpenConcierge, onOpenAdmin }: FooterSectionProps) {
   const currentYear = new Date().getFullYear();
+
+  const scrollToTop = () => {
+    if ((window as any).lenis) {
+      (window as any).lenis.scrollTo(0, {
+        duration: 1.5,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   return (
     <footer className="bg-[#0f0d0b] text-stone-300 border-t border-stone-800/80 relative overflow-hidden">
@@ -190,6 +202,15 @@ export default function FooterSection({ onOpenBooking, onOpenConcierge, onOpenAd
             >
               <Shield className="w-3 h-3 text-amber-400" />
               <span>Admin Login</span>
+            </button>
+            <span>•</span>
+            <button
+              onClick={scrollToTop}
+              className="text-amber-400 hover:text-amber-300 transition flex items-center space-x-1 cursor-pointer font-medium"
+              title="Smooth Scroll to Top"
+            >
+              <ChevronUp className="w-3.5 h-3.5" />
+              <span>Back to Top</span>
             </button>
           </div>
         </div>

@@ -155,8 +155,8 @@ export default function DirectBookingEngine({ initialRoomType, initialDates }: D
   };
 
   return (
-    <section id="booking-engine" className="py-20 lg:py-28 bg-[#181614] text-white relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="booking" className="py-20 lg:py-28 bg-[#181614] text-white relative scroll-mt-20">
+      <div id="booking-engine" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
           <span className="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-bold uppercase tracking-wider mb-3">

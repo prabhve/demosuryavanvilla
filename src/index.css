@@ -8,7 +8,27 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: initial;
+  }
+
+  html.lenis, html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  .lenis.lenis-smooth iframe {
+    pointer-events: none;
   }
 
   body {
@@ -31,7 +51,7 @@
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #faf8f5;
+  background: #141210;
 }
 ::-webkit-scrollbar-thumb {
   background: #d4af37;
@@ -40,3 +60,4 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #b38f2a;
 }
+
